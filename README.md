@@ -1,12 +1,49 @@
 Symfony SMS-fly Notifier
 =================
 
-Provides [SMS-fly](https://sms-fly.ua/) integration for Symfony Notifier.
+Provides [SMS-fly](https://sms-fly.ua/) integration for Symfony Notifier. SymfonySmsFlyNotifier allows you to send SMS and/or Viber messages
 
-DSN example
+Example use without Symfony Full-Stack Framework
+---------------------------
+```php
+use SolParts\SymfonySmsFlyNotifier\SmsFlyTransport;
+use Psr\Log\LoggerInterface;
+
+/** @var LoggerInterface $logger */
+$logger = /*...*/;
+
+try {
+    $transport = new SmsFlyTransport('authKey', 'InfoCenter');
+    
+    $sms = new SmsMessage('+380771234567', 'My sms message');
+    $sentMessage = $transport->send($sms);
+catch (\Throwable $e) {
+    $logger->critical($e->getMessage());
+}
+
+dump($sentMessage->getMessageId());
+// "FAPI00134035C3000004"
+
+dump($sentMessage->getInfo());
+// [
+//    "success" => 1
+//    "date" => "2025-09-18 14:14:01 +0300"
+//    "data" => array:2 [
+//      "messageID" => "FAPI00134035C3000004"
+//      "sms" => array:3 [
+//        "status" => "ACCEPTD"
+//        "date" => "2025-09-18 14:14:01 +0300"
+//        "cost" => "0.979"
+//      ]
+//    ]
+//  ]
+```
+
+Example if you are using Symfony Full-Stack Framework
 -----------
 
 ```
+# config/packages/notifier.yaml
 SMSFLY_DSN=smsfly://AUTHKEY@default?from=InfoCenter
 ```
 
@@ -14,17 +51,27 @@ where:
 - `AUTHKEY` is your SMS-fly auth key
 - `FROM` is your sender name, should be alpha-numeral
 
-Adding Options to a Message
----------------------------
-
-With a SMS-Fly Message, you can use the `SmsFlyOptions` class to add
-[message options](https://sms-fly.ua/public/api.v2.4_uk.pdf).
-
 ```php
 use Symfony\Component\Notifier\Message\SmsMessage;
 use SolParts\SymfonySmsFlyNotifier\SmsFlyOptions;
+use Symfony\Component\Notifier\TexterInterface;
+
+/** @var TexterInterface $texter */
+$texter = /*...*/;
 
 $sms = new SmsMessage('+380771234567', 'My sms message');
+$texter->send($sms);
+```
+
+Adding custom Options to a Message
+---------------------------
+
+With a SMS-Fly Message, you can use the `SmsFlyOptions` class to add
+[message options](https://github.com/sol-parts/symfony-smsfly-notifier/blob/7.3/SmsFlyOptions.php).
+
+```php
+use SolParts\SymfonySmsFlyNotifier\SmsFlyOptions;
+use Symfony\Component\Notifier\Message\SmsMessage;
 
 $options = (new SmsFlyOptions())
     // Message sending channels.
@@ -40,10 +87,9 @@ $options = (new SmsFlyOptions())
     ->ttl(1440)
     ;
 
-// Add the custom options to the sms message and send the message
+/** @var SmsMessage $sms */
+$sms = /*...*/;
 $sms->options($options);
-
-$texter->send($sms);
 ```
 
 Resources
