@@ -3,6 +3,11 @@ Symfony SMS-fly Notifier
 
 Provides [SMS-fly](https://sms-fly.ua/) integration for Symfony Notifier. SymfonySmsFlyNotifier allows you to send SMS and/or Viber messages
 
+## Installation
+```bash
+composer require sol-parts/symfony-smsfly-notifier
+```
+
 Example use without Symfony Full-Stack Framework
 ---------------------------
 ```php
