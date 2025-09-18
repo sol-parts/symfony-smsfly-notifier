@@ -1,0 +1,37 @@
+{
+  "name": "sol-parts/symfony-smsfly-notifier",
+  "type": "symfony-notifier-bridge",
+  "description": "Symfony SMS-fly Notifier Bridge",
+  "keywords": ["sms", "smsfly", "notifier", "symfony"],
+  "homepage": "https://sol.parts",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andrii Didenko",
+      "email": "andrii@didenko.dev"
+    },
+    {
+      "name": "Oleksandr Nechyporuk",
+      "email": "oleksandr@nechyporuk.name"
+    },
+    {
+      "name": "Symfony Community",
+      "homepage": "https://symfony.com/contributors"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "ext-mbstring": "*",
+    "../../vendor/symfony/http-client": "^6.4|^7.0",
+    "../../vendor/symfony/notifier": "^7.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "SolParts\\SymfonysmsflyNotifier\\": ""
+    },
+    "exclude-from-classmap": [
+      "/SymfonySmsFlyNotifier/Tests/"
+    ]
+  },
+  "minimum-stability": "dev"
+}
