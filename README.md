@@ -6,6 +6,7 @@ Provides [SMS-fly](https://sms-fly.ua/) integration for Symfony Notifier. Symfon
 Example use without Symfony Full-Stack Framework
 ---------------------------
 ```php
+use Symfony\Component\Notifier\Message\SmsMessage;
 use SolParts\SymfonySmsFlyNotifier\SmsFlyTransport;
 use Psr\Log\LoggerInterface;
 
@@ -17,7 +18,7 @@ try {
     
     $sms = new SmsMessage('+380771234567', 'My sms message');
     $sentMessage = $transport->send($sms);
-catch (\Throwable $e) {
+}catch (\Throwable $e) {
     $logger->critical($e->getMessage());
 }
 
@@ -53,7 +54,6 @@ where:
 
 ```php
 use Symfony\Component\Notifier\Message\SmsMessage;
-use SolParts\SymfonySmsFlyNotifier\SmsFlyOptions;
 use Symfony\Component\Notifier\TexterInterface;
 
 /** @var TexterInterface $texter */
