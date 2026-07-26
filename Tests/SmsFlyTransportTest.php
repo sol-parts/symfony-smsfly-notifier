@@ -49,7 +49,7 @@ final class SmsFlyTransportTest extends TransportTestCase
         yield ['smsfly://sms-fly.ua?from=sender', self::createTransport()];
     }
 
-    public function testSuccessfulSend()
+    public function testSuccessfulSend(): void
     {
         $body = [
             'success' => 1,
@@ -67,7 +67,7 @@ final class SmsFlyTransportTest extends TransportTestCase
         $response = new JsonMockResponse(body: $body, info: ['http_code' => 200]);
 
         $client = new MockHttpClient(static function (string $method, string $url, array $options) use ($response): ResponseInterface {
-            $body = \json_decode($options['body'], true);
+            $body = \json_decode((string) $options['body'], true);
             self::assertSame([
                 'auth' => [
                     'key' => 'authKey',

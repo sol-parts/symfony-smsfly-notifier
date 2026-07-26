@@ -22,8 +22,10 @@ use Symfony\Component\Notifier\Message\MessageOptionsInterface;
  */
 final class SmsFlyOptions implements MessageOptionsInterface
 {
+    /** @var array<mixed> */
     private array $options = [];
 
+    /** @return array<mixed> */
     public function toArray(): array
     {
         return $this->options;
@@ -47,6 +49,8 @@ final class SmsFlyOptions implements MessageOptionsInterface
      * Канали відправки повідомлення. Доступні значення viber, sms.
      * При вказанні декількох каналів, повідомлення відправляється в канали в порядку черговості.
      * Повідомлення відправляється в наступний канал, якщо доставка в попередній не була успішна.
+     *
+     * @param array<mixed> $channels
      */
     public function channels(array $channels): static
     {

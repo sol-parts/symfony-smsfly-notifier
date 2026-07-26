@@ -36,8 +36,8 @@ final class SmsFlyTransport extends AbstractTransport
 
     public function __construct(
         #[\SensitiveParameter]
-        private string $authKey,
-        private string $from,
+        private readonly string $authKey,
+        private readonly string $from,
         ?HttpClientInterface $client = null,
         ?EventDispatcherInterface $dispatcher = null,
     ) {
@@ -61,7 +61,7 @@ final class SmsFlyTransport extends AbstractTransport
     {
         $endpoint = \sprintf('https://%s/api/v2/api.php', $this->getEndpoint());
 
-        $response = $this->client->request('POST', $endpoint, [
+        $response = $this->httpClient()->request('POST', $endpoint, [
             'json' => [
                 'auth' => [
                     'key' => $this->authKey,
@@ -77,48 +77,49 @@ final class SmsFlyTransport extends AbstractTransport
             throw new TransportException('SmsFly API request execution error.', $response, 0, $e);
         }
 
-        return $info['data']['balance'] ?? 'n/a';
+        return (string) ($info['data']['balance'] ?? 'n/a');
     }
 
     protected function doSend(MessageInterface $message): SentMessage
     {
-        if (!$this->supports($message)) {
-            throw new UnsupportedMessageTypeException(__CLASS__, SmsMessage::class, $message);
+        if (!$message instanceof SmsMessage) {
+            throw new UnsupportedMessageTypeException(self::class, SmsMessage::class, $message);
         }
 
         $from = $message->getFrom() ?: $this->from;
 
         $endpoint = \sprintf('https://%s/api/v2/api.php', $this->getEndpoint());
+        $options = $message->getOptions()?->toArray() ?? [];
 
         $data = ['recipient' => \ltrim($message->getPhone(), '+')];
-        $data['channels'] = $message->getOptions()?->toArray()['channels'] ?? ['sms'];
+        $data['channels'] = $options['channels'] ?? ['sms'];
 
         if (\in_array('viber', $data['channels'], true)) {
             $data['viber'] = [
-                'source' => $message->getOptions()?->toArray()['viber_source'] ?? $from,
-                'ttl' => $message->getOptions()?->toArray()['ttl'] ?? 60,
-                'text' => $message->getOptions()?->toArray()['viber_text'] ?? $message->getSubject(),
+                'source' => $options['viber_source'] ?? $from,
+                'ttl' => $options['ttl'] ?? 60,
+                'text' => $options['viber_text'] ?? $message->getSubject(),
             ];
-            if (!empty($message->getOptions()?->toArray()['viber_button_url'])) {
+            if (!empty($options['viber_button_url'])) {
                 $data['viber']['button'] = [
-                    'caption' => $message->getOptions()?->toArray()['viber_button_caption'] ?? 'Button',
-                    'url' => $message->getOptions()?->toArray()['viber_button_url'],
+                    'caption' => $options['viber_button_caption'] ?? 'Button',
+                    'url' => $options['viber_button_url'],
                 ];
             }
-            if (!empty($message->getOptions()?->toArray()['viber_image'])) {
-                $data['viber']['image'] = $message->getOptions()?->toArray()['viber_image'];
+            if (!empty($options['viber_image'])) {
+                $data['viber']['image'] = $options['viber_image'];
             }
         }
 
         if (\in_array('sms', $data['channels'], true)) {
             $data['sms'] = [
                 'source' => $from,
-                'ttl' => $message->getOptions()?->toArray()['ttl'] ?? 60,
+                'ttl' => $options['ttl'] ?? 60,
                 'text' => $message->getSubject(),
             ];
         }
 
-        $response = $this->client->request('POST', $endpoint, [
+        $response = $this->httpClient()->request('POST', $endpoint, [
             'json' => [
                 'auth' => ['key' => $this->authKey],
                 'action' => 'SENDMESSAGE',
@@ -141,7 +142,7 @@ final class SmsFlyTransport extends AbstractTransport
         if (empty($info['success']) || 200 !== $statusCode) {
             try {
                 $textError = \json_encode($info, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $textError = 'unknown error';
             }
             throw new TransportException(\sprintf('Unable to send the SMS with SmsFly: "%s".', $textError), $response);
@@ -153,5 +154,10 @@ final class SmsFlyTransport extends AbstractTransport
         $sentMessage->setMessageId((string) $messageId);
 
         return $sentMessage;
+    }
+
+    private function httpClient(): HttpClientInterface
+    {
+        return $this->client ?? throw new \LogicException('SMS Fly HTTP client is not initialized.');
     }
 }
